@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetMonitor Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                🐾 VetMonitor <span style="font-weight:300">| TFG</span>
+            </div>
+            <div class="status-badge">
+                ● Conectado
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        
+        <div class="card temp-card" onclick="openModal('temperatura')">
+            <div class="card-header">
+                <h2>Temperatura</h2>
+                <span class="icon">🌡️</span>
+            </div>
+            <div class="value-container">
+                <span id="val-temperatura" class="current-value temp-text">--</span>
+                <span class="unit">°C</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-temperatura"></canvas>
+            </div>
+            <div id="date-temperatura" class="last-update">Cargando...</div>
+        </div>
+
+        <div class="card pulse-card" onclick="openModal('pulso')">
+            <div class="card-header">
+                <h2>Pulso Cardíaco</h2>
+                <span class="icon">❤️</span>
+            </div>
+            <div class="value-container">
+                <span id="val-pulso" class="current-value pulse-text">--</span>
+                <span class="unit">BPM</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-pulso"></canvas>
+            </div>
+            <div id="date-pulso" class="last-update">Cargando...</div>
+        </div>
+
+        <div class="card oxy-card" onclick="openModal('oxigeno')">
+            <div class="card-header">
+                <h2>Oxígeno (SpO2)</h2>
+                <span class="icon">💧</span>
+            </div>
+            <div class="value-container">
+                <span id="val-oxigeno" class="current-value oxy-text">--</span>
+                <span class="unit">%</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-oxigeno"></canvas>
+            </div>
+            <div id="date-oxigeno" class="last-update">Cargando...</div>
+        </div>
+
+    </div>
+
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 id="modal-title">Detalle</h2>
+            </div>
+            <div class="modal-chart-container">
+                <canvas id="modal-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= CONFIG =================
+        const AIO_USERNAME = 'RocioVL';
+        const AIO_KEY      = 'SECRET_AIO_KEY_PLACEHOLDER';
+        
+        const FEEDS = [
+            { key: 'temperatura', label: 'Temperatura Corporal', unit: '°C', color: '#ff7675', elementId: 'temperatura' },
+            { key: 'pulso', label: 'Pulso Cardíaco', unit: 'BPM', color: '#e84393', elementId: 'pulso' },
+            { key: 'oxigeno', label: 'Saturación Oxígeno', unit: '%', color: '#0984e3', elementId: 'oxigeno' }
+        ];
+
+        const chartsInstances = {}; 
+        let modalChartInstance = null; 
+        const globalDataCache = {};
+
+        async function updateAllFeeds() {
+            FEEDS.forEach(feed => fetchData(feed));
+        }
+
+        async function fetchData(feedConfig) {
+            const url = `https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${feedConfig.key}/data?limit=20`;
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'X-AIO-Key': AIO_KEY }
+                });
+                if (!response.ok) throw new Error('Error API');
+                
+                const data = await response.json();
+                if (data.length === 0) return;
+
+                const history = data.reverse();
+                globalDataCache[feedConfig.key] = {
+                    labels: history.map(d => new Date(d.created_at).toLocaleTimeString()),
+                    values: history.map(d => d.value),
+                    lastValue: history[history.length - 1].value,
+                    lastDate: history[history.length - 1].created_at
+                };
+
+                updateCardUI(feedConfig, globalDataCache[feedConfig.key]);
+
+                if (currentOpenFeed === feedConfig.key) {
+                    renderModalChart(feedConfig, globalDataCache[feedConfig.key]);
+                }
+
+            } catch (error) { console.error(error); }
+        }
+
+        function updateCardUI(config, dataObj) {
+            document.getElementById(`val-${config.elementId}`).innerText = parseFloat(dataObj.lastValue).toFixed(1);
+            document.getElementById(`date-${config.elementId}`).innerText = "Act: " + new Date(dataObj.lastDate).toLocaleTimeString();
+
+            const ctx = document.getElementById(`chart-${config.elementId}`).getContext('2d');
+            if (chartsInstances[config.key]) {
+                chartsInstances[config.key].data.labels = dataObj.labels;
+                chartsInstances[config.key].data.datasets[0].data = dataObj.values;
+                chartsInstances[config.key].update();
+            } else {
+                chartsInstances[config.key] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dataObj.labels,
+                        datasets: [{
+                            data: dataObj.values,
+                            borderColor: config.color,
+                            backgroundColor: config.color + '33',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } }, // Desactivamos tooltip en la pequeña
+                        scales: { x: { display: false }, y: { display: false } },
+                        animation: false
+                    }
+                });
+            }
+        }
+
+        let currentOpenFeed = null;
+        const modalElement = document.getElementById('detail-modal');
+
+        function openModal(feedKey) {
+            const config = FEEDS.find(f => f.elementId === feedKey);
+            if (!config || !globalDataCache[config.key]) return;
+
+            currentOpenFeed = config.key;
+            
+            modalElement.style.display = 'flex';
+            document.getElementById('modal-title').innerText = config.label;
+            document.getElementById('modal-title').style.color = config.color;
+
+            renderModalChart(config, globalDataCache[config.key]);
+        }
+
+        function closeModal() {
+            modalElement.style.display = 'none';
+            currentOpenFeed = null;
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modalElement) closeModal();
+        }
+
+        function renderModalChart(config, dataObj) {
+            const ctx = document.getElementById('modal-chart').getContext('2d');
+
+            if (modalChartInstance) {
+                modalChartInstance.destroy();
+            }
+
+            modalChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataObj.labels,
+                    datasets: [{
+                        label: `${config.label} (${config.unit})`,
+                        data: dataObj.values,
+                        borderColor: config.color,
+                        backgroundColor: config.color + '20',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: config.color,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: true },
+                        tooltip: { enabled: true, mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: { display: true, grid: { display: false } },
+                        y: { display: true, grid: { color: '#eee' } }
+                    }
+                }
+            });
+        }
+
+        updateAllFeeds();
+        setInterval(updateAllFeeds, 10000);
+    </script>
+</body>
+</html>
