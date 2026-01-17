@@ -37,14 +37,20 @@ async function fetchData(feedConfig) {
 
             // Filtro para Oxígeno
             if (feedConfig.key === 'oxigeno') {
-                if ((val < -999 || val < 60) && i > 0) {
+                if ( val < 80 && i > 0) {
                     history[i].value = history[i - 1].value; 
                 }
             }
 
             // Filtro para Pulso
             if (feedConfig.key === 'pulso') {
-                if (val < 80 && i > 0) {
+                if (val < 50 && i > 0) {
+                    history[i].value = history[i - 1].value; 
+                }
+            }
+            // Filtro para Temperatura
+            if (feedConfig.key === 'pulso') {
+                if ((val < 30 || val > 45) && i > 0) {
                     history[i].value = history[i - 1].value; 
                 }
             }
