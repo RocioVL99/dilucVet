@@ -25,7 +25,7 @@ jobs:
 
       - name: Inject API Key
         run: |
-          sed -i 's/SECRET_AIO_KEY_PLACEHOLDER/${{ secrets.AIO_KEY }}/g' script.js
+          sed -i 's/SECRET_AIO_KEY_PLACEHOLDER/${{ secrets.AIO_KEY }}/g' dilucVet/script.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
