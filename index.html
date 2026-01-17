@@ -12,7 +12,9 @@
     <header>
         <div class="header-content">
             <div class="logo">
-                🐾 VetMonitor <span style="font-weight:300">| TFG</span>
+                <img src="diluc.jpg" alt="Foto Gato" class="cat-avatar">
+                
+                VetMonitor: Gato <span style="font-weight:300">| Diluc</span>
             </div>
             <div class="status-badge">
                 ● Conectado
@@ -25,7 +27,6 @@
         <div class="card temp-card" onclick="openModal('temperatura')">
             <div class="card-header">
                 <h2>Temperatura</h2>
-                <span class="icon">🌡️</span>
             </div>
             <div class="value-container">
                 <span id="val-temperatura" class="current-value temp-text">--</span>
@@ -40,7 +41,6 @@
         <div class="card pulse-card" onclick="openModal('pulso')">
             <div class="card-header">
                 <h2>Pulso Cardíaco</h2>
-                <span class="icon">❤️</span>
             </div>
             <div class="value-container">
                 <span id="val-pulso" class="current-value pulse-text">--</span>
@@ -55,7 +55,6 @@
         <div class="card oxy-card" onclick="openModal('oxigeno')">
             <div class="card-header">
                 <h2>Oxígeno (SpO2)</h2>
-                <span class="icon">💧</span>
             </div>
             <div class="value-container">
                 <span id="val-oxigeno" class="current-value oxy-text">--</span>
@@ -85,7 +84,7 @@
         // ================= CONFIG =================
         const AIO_USERNAME = 'RocioVL';
         const AIO_KEY      = 'SECRET_AIO_KEY_PLACEHOLDER';
-        
+
         const FEEDS = [
             { key: 'temperatura', label: 'Temperatura Corporal', unit: '°C', color: '#ff7675', elementId: 'temperatura' },
             { key: 'pulso', label: 'Pulso Cardíaco', unit: 'BPM', color: '#e84393', elementId: 'pulso' },
@@ -112,7 +111,33 @@
                 const data = await response.json();
                 if (data.length === 0) return;
 
+                // 1. Ordenamos cronológicamente (antiguo -> nuevo)
                 const history = data.reverse();
+
+                // === INICIO DEL FILTRO SOLICITADO ===
+                // Recorremos el historial para limpiar picos o errores
+                for (let i = 0; i < history.length; i++) {
+                    let val = parseFloat(history[i].value);
+
+                    // Filtro para Oxígeno
+                    if (feedConfig.key === 'oxigeno') {
+                        // "Si es menor de -999 o menor de 60"
+                        // Nota: matemáticamente < -999 ya es < 60, pero cubrimos ambos casos.
+                        if ((val < -999 || val < 60) && i > 0) {
+                            history[i].value = history[i - 1].value; // Copiar dato anterior
+                        }
+                    }
+
+                    // Filtro para Pulso
+                    if (feedConfig.key === 'pulso') {
+                        // "Si es menor a 80"
+                        if (val < 80 && i > 0) {
+                            history[i].value = history[i - 1].value; // Copiar dato anterior
+                        }
+                    }
+                }
+                // === FIN DEL FILTRO ===
+
                 globalDataCache[feedConfig.key] = {
                     labels: history.map(d => new Date(d.created_at).toLocaleTimeString()),
                     values: history.map(d => d.value),
@@ -128,13 +153,27 @@
 
             } catch (error) { console.error(error); }
         }
-
         function updateCardUI(config, dataObj) {
-            document.getElementById(`val-${config.elementId}`).innerText = parseFloat(dataObj.lastValue).toFixed(1);
-            document.getElementById(`date-${config.elementId}`).innerText = "Act: " + new Date(dataObj.lastDate).toLocaleTimeString();
+                document.getElementById(`val-${config.elementId}`).innerText = parseFloat(dataObj.lastValue).toFixed(1);
 
-            const ctx = document.getElementById(`chart-${config.elementId}`).getContext('2d');
-            if (chartsInstances[config.key]) {
+                // === CAMBIA ESTA PARTE ===
+                const d = new Date(dataObj.lastDate);
+                
+                // Formateamos Día/Mes/Año (2 dígitos)
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+                const year = String(d.getFullYear()).slice(-2); // Cogemos los últimos 2 dígitos
+                
+                // Formateamos Hora:Minutos
+                const hours = String(d.getHours()).padStart(2, '0');
+                const mins = String(d.getMinutes()).padStart(2, '0');
+
+                // Construimos la frase final: "Día 17/01/26 y hora 11:25"
+                document.getElementById(`date-${config.elementId}`).innerText = 
+                    `Ultimo dato: ${day}/${month}/${year} a las ${hours}:${mins}`;
+                // ========================
+
+                const ctx = document.getElementById(`chart-${config.elementId}`).getContext('2d');            if (chartsInstances[config.key]) {
                 chartsInstances[config.key].data.labels = dataObj.labels;
                 chartsInstances[config.key].data.datasets[0].data = dataObj.values;
                 chartsInstances[config.key].update();

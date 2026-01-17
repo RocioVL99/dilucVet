@@ -65,20 +65,27 @@ header {
     border: 1px solid #2ecc71;
 }
 
+/* En style.css */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 25px;
+    
+    /* MAGIA: Esto crea columnas automáticas. 
+       Las tarjetas medirán mínimo 280px y se estirarán (1fr) para llenar huecos. */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    
+    /* Separación: 60px vertical (para que quepa el texto de abajo) y 25px horizontal */
+    gap: 60px 25px; 
+    
     width: 100%;
     max-width: 1200px;
-    padding: 0 20px 40px 20px;
+    
+    /* Padding inferior grande para que la última tarjeta no se corte al final de la web */
+    padding: 0 20px 100px 20px; 
+    
     box-sizing: border-box;
-}
-
-@media (min-width: 900px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
+    
+    /* Para centrar las tarjetas si solo hay 1 o 2 en una pantalla grande */
+    justify-content: center; 
 }
 
 .card {
@@ -99,16 +106,26 @@ header {
 }
 
 .card::after {
-    content: '🔍 Ver detalle';
+    content: 'Ver detalles';
     position: absolute;
-    bottom: 10px;
-    right: 20px;
+    bottom: 10px;        /* Distancia desde abajo */
+    left: 50%;           /* Lo coloca a la mitad horizontalmente */
+    transform: translateX(-50%); /* Lo centra exactamente */
+    
     font-size: 0.8rem;
     color: var(--text-secondary);
-    opacity: 0;
+    opacity: 0;          /* Invisible por defecto */
     transition: opacity 0.3s;
+    
+    /* Opcional: fondo blanco para que tape la fecha si se solapan */
+    background-color: var(--card-bg); 
+    padding: 0 10px;
+    border-radius: 10px;
 }
-.card:hover::after { opacity: 1; }
+
+.card:hover::after { 
+    opacity: 1; /* Visible al pasar el ratón */
+}
 
 .card.temp-card { border-top-color: var(--color-temp); }
 .card.pulse-card { border-top-color: var(--color-pulse); }
@@ -123,9 +140,12 @@ header {
 
 .card h2 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 500;
     color: var(--text-secondary);
+    flex-grow: 1;       /* Hace que el h2 ocupe todo el ancho posible */
+    text-align: center; /* Centra el texto dentro de ese espacio */
+    /* align-self: center; <-- Esto puedes quitarlo, ya viene del padre */
 }
 
 .value-container { text-align: center; margin-bottom: 20px; }
@@ -136,7 +156,16 @@ header {
 .oxy-text { color: var(--color-oxy); }
 
 .unit { font-size: 1.5rem; color: var(--text-secondary); font-weight: 300; }
-.last-update { font-size: 0.75rem; color: var(--text-secondary); text-align: right; margin-top: 10px; }
+/* En style.css, busca y modifica este bloque */
+.last-update { 
+    font-size: 0.75rem; 
+    color: var(--text-secondary); 
+    
+    /* CAMBIA ESTO: de 'right' a 'center' */
+    text-align: center; 
+    
+    margin-top: 10px; 
+}
 
 .chart-wrapper {
     position: relative;
@@ -190,4 +219,34 @@ header {
     height: 400px;
     width: 100%;
     margin-top: 20px;
+}
+
+.cat-avatar {
+    height: 40px;       /* Altura ajustada a la barra */
+    width: 40px;        /* Anchura igual para que sea cuadrado */
+    object-fit: cover;  /* Para que la foto no se deforme */
+    border-radius: 50%; /* Esto hace la imagen redonda */
+    border: 2px solid white; /* Opcional: un borde blanco */
+    margin-right: 10px; /* Espacio extra entre la foto y el texto */
+}
+
+/* Añadir al final de style.css para adaptar el encabezado en móviles */
+@media (max-width: 600px) {
+    .header-content {
+        flex-direction: column;  /* Coloca los elementos uno debajo del otro */
+        gap: 10px;               /* Espacio entre el título y la insignia de estado */
+        padding-bottom: 5px;     /* Un poco de ajuste visual */
+    }
+
+    .logo {
+        justify-content: center; /* Centra la imagen del gato y el texto horizontalmente */
+        width: 100%;             /* Asegura que el contenedor ocupe todo el ancho */
+        font-size: 1.3rem;       /* Reduce ligeramente el tamaño de letra si es necesario */
+    }
+    
+    /* Opcional: Ajustar el tamaño de la foto del gato en móvil si se ve muy grande */
+    .cat-avatar {
+        height: 35px;
+        width: 35px;
+    }
 }
