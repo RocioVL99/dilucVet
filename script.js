@@ -5,7 +5,8 @@ const AIO_KEY      = 'SECRET_AIO_KEY_PLACEHOLDER'; // Recuerda poner tu key real
 const FEEDS = [
     { key: 'temperatura', label: 'Temperatura Corporal', unit: '°C', color: '#ff7675', elementId: 'temperatura' },
     { key: 'pulso', label: 'Pulso Cardíaco', unit: 'BPM', color: '#e84393', elementId: 'pulso' },
-    { key: 'oxigeno', label: 'Saturación Oxígeno', unit: '%', color: '#0984e3', elementId: 'oxigeno' }
+    { key: 'oxigeno', label: 'Saturación Oxígeno', unit: '%', color: '#0984e3', elementId: 'oxigeno' },
+    { key: 'ambiente', label: 'Temp. Ambiente', unit: '°C', color: '#fdcb6e', elementId: 'ambiente' }
 ];
 
 const chartsInstances = {}; 

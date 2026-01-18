@@ -67,6 +67,20 @@
 
     </div>
 
+    <div class="card amb-card" onclick="openModal('ambiente')">
+        <div class="card-header">
+            <h2>Temp. Ambiente</h2>
+        </div>
+        <div class="value-container">
+            <span id="val-ambiente" class="current-value amb-text">--</span>
+            <span class="unit">°C</span>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="chart-ambiente"></canvas>
+        </div>
+        <div id="date-ambiente" class="last-update">Cargando...</div>
+    </div>
+
     <div id="detail-modal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>

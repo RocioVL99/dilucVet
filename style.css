@@ -11,6 +11,7 @@
     --color-temp: #ff7675;
     --color-pulse: #e84393;
     --color-oxy: #0984e3;
+    --color-amb: #fdcb6e;
 }
 
 body {
@@ -130,6 +131,7 @@ header {
 .card.temp-card { border-top-color: var(--color-temp); }
 .card.pulse-card { border-top-color: var(--color-pulse); }
 .card.oxy-card { border-top-color: var(--color-oxy); }
+.card.amb-card { border-top-color: var(--color-amb); }
 
 .card-header {
     display: flex;
@@ -154,6 +156,7 @@ header {
 .temp-text { color: var(--color-temp); }
 .pulse-text { color: var(--color-pulse); }
 .oxy-text { color: var(--color-oxy); }
+.amb-text { color: var(--color-amb); }
 
 .unit { font-size: 1.5rem; color: var(--text-secondary); font-weight: 300; }
 /* En style.css, busca y modifica este bloque */
