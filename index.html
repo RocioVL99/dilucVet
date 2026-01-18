@@ -15,6 +15,11 @@
                 <img src="diluc.jpg" alt="Foto Gato" class="cat-avatar">
                 VetMonitor: Gato <span style="font-weight:300">| Diluc</span>
             </div>
+
+            <div class="amb-badge">
+                Temp. Amb: <span id="val-ambiente">--</span> °C
+            </div>
+
             <div class="status-badge">
                 ● Conectado
             </div>
@@ -65,20 +70,6 @@
             <div id="date-oxigeno" class="last-update">Cargando...</div>
         </div>
 
-    </div>
-
-    <div class="card amb-card" onclick="openModal('ambiente')">
-        <div class="card-header">
-            <h2>Temp. Ambiente</h2>
-        </div>
-        <div class="value-container">
-            <span id="val-ambiente" class="current-value amb-text">--</span>
-            <span class="unit">°C</span>
-        </div>
-        <div class="chart-wrapper">
-            <canvas id="chart-ambiente"></canvas>
-        </div>
-        <div id="date-ambiente" class="last-update">Cargando...</div>
     </div>
 
     <div id="detail-modal" class="modal-overlay">

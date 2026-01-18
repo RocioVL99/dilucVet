@@ -66,6 +66,21 @@ header {
     border: 1px solid #2ecc71;
 }
 
+.amb-badge {
+    background: rgba(253, 203, 110, 0.2); /* Fondo semitransparente */
+    color: var(--color-amb);               /* Texto del color principal */
+    border: 1px solid var(--color-amb);    /* Borde del mismo color */
+    
+    /* Copiamos el estilo del status-badge para que sean iguales */
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 /* En style.css */
 .dashboard-grid {
     display: grid;

@@ -75,46 +75,57 @@ async function fetchData(feedConfig) {
 }
 
 function updateCardUI(config, dataObj) {
-    document.getElementById(`val-${config.elementId}`).innerText = parseFloat(dataObj.lastValue).toFixed(1);
+    // 1. Actualizar el VALOR (Esto siempre existe)
+    const valElement = document.getElementById(`val-${config.elementId}`);
+    if (valElement) {
+        valElement.innerText = parseFloat(dataObj.lastValue).toFixed(1);
+    }
 
-    const d = new Date(dataObj.lastDate);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = String(d.getFullYear()).slice(-2);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
+    // 2. Actualizar la FECHA (Solo si existe el elemento en el HTML)
+    const dateElement = document.getElementById(`date-${config.elementId}`);
+    if (dateElement) {
+        const d = new Date(dataObj.lastDate);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = String(d.getFullYear()).slice(-2);
+        const hours = String(d.getHours()).padStart(2, '0');
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        
+        dateElement.innerText = `Ultimo dato: ${day}/${month}/${year} a las ${hours}:${mins}`;
+    }
 
-    document.getElementById(`date-${config.elementId}`).innerText = 
-        `Ultimo dato: ${day}/${month}/${year} a las ${hours}:${mins}`;
-
-    const ctx = document.getElementById(`chart-${config.elementId}`).getContext('2d');            
-    
-    if (chartsInstances[config.key]) {
-        chartsInstances[config.key].data.labels = dataObj.labels;
-        chartsInstances[config.key].data.datasets[0].data = dataObj.values;
-        chartsInstances[config.key].update();
-    } else {
-        chartsInstances[config.key] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dataObj.labels,
-                datasets: [{
-                    data: dataObj.values,
-                    borderColor: config.color,
-                    backgroundColor: config.color + '33',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                scales: { x: { display: false }, y: { display: false } },
-                animation: false
-            }
-        });
+    // 3. Actualizar la GRÁFICA (Solo si existe el canvas)
+    const chartCanvas = document.getElementById(`chart-${config.elementId}`);
+    if (chartCanvas) {
+        const ctx = chartCanvas.getContext('2d');            
+        
+        if (chartsInstances[config.key]) {
+            chartsInstances[config.key].data.labels = dataObj.labels;
+            chartsInstances[config.key].data.datasets[0].data = dataObj.values;
+            chartsInstances[config.key].update();
+        } else {
+            chartsInstances[config.key] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataObj.labels,
+                    datasets: [{
+                        data: dataObj.values,
+                        borderColor: config.color,
+                        backgroundColor: config.color + '33',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false } },
+                    animation: false
+                }
+            });
+        }
     }
 }
 
