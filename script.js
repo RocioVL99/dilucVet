@@ -50,8 +50,8 @@ async function fetchData(feedConfig) {
                 }
             }
             // Filtro para Temperatura
-            if (feedConfig.key === 'pulso') {
-                if ((val < 30 || val > 45) && i > 0) {
+            if (feedConfig.key === 'temperatura') {
+                if ((val < 30 || val > 50) && i > 0) {
                     history[i].value = history[i - 1].value; 
                 }
             }
